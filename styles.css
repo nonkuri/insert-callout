@@ -1,0 +1,11 @@
+.insert-callout-suggestion {
+	display: flex;
+	align-items: center;
+	gap: var(--size-4-2);
+}
+
+.insert-callout-suggestion-icon {
+	display: flex;
+	align-items: center;
+	color: var(--text-muted);
+}

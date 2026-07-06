@@ -1,0 +1,12 @@
+# Build output (distributed via GitHub Releases)
+main.js
+
+# Dependencies
+node_modules/
+
+# Local tool settings
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db

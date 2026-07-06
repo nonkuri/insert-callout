@@ -1,0 +1,19 @@
+{
+	"name": "insert-callout",
+	"version": "1.0.0",
+	"description": "Obsidian plugin to insert callouts via a type-selection dialog.",
+	"main": "main.js",
+	"scripts": {
+		"dev": "node esbuild.config.mjs",
+		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production"
+	},
+	"keywords": ["obsidian", "plugin", "callout"],
+	"author": "nonkuri",
+	"license": "MIT",
+	"devDependencies": {
+		"esbuild": "^0.24.2",
+		"obsidian": "latest",
+		"tslib": "^2.8.1",
+		"typescript": "^5.7.3"
+	}
+}

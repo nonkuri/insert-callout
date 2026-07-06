@@ -1,0 +1,10 @@
+{
+	"id": "insert-callout",
+	"name": "Insert Callout",
+	"version": "1.0.0",
+	"minAppVersion": "1.0.0",
+	"description": "Insert a callout at the cursor line, or turn the selection into a callout. The callout type is chosen from a dialog.",
+	"author": "nonkuri",
+	"authorUrl": "https://github.com/nonkuri",
+	"isDesktopOnly": false
+}
