@@ -1,16 +1,22 @@
 import {
 	App,
 	Editor,
+	EditorPosition,
+	EditorSuggest,
+	EditorSuggestContext,
+	EditorSuggestTriggerInfo,
 	Plugin,
 	PluginSettingTab,
 	Setting,
 	SuggestModal,
+	TFile,
 	setIcon,
 } from "obsidian";
 
 interface InsertCalloutSettings {
 	calloutTypes: string[];
-	lastUsed: string;
+	recentTypes: string[];
+	skipClosingBracket: boolean;
 }
 
 // Obsidian 公式ドキュメントに記載されている組み込み Callout の種類
@@ -49,8 +55,16 @@ const CALLOUT_ICONS: Record<string, string> = {
 
 const DEFAULT_SETTINGS: InsertCalloutSettings = {
 	calloutTypes: [...DEFAULT_CALLOUT_TYPES],
-	lastUsed: "note",
+	recentTypes: [],
+	skipClosingBracket: true,
 };
+
+function renderCalloutSuggestion(type: string, el: HTMLElement): void {
+	el.addClass("insert-callout-suggestion");
+	const iconEl = el.createSpan({ cls: "insert-callout-suggestion-icon" });
+	setIcon(iconEl, CALLOUT_ICONS[type] ?? "lucide-pencil");
+	el.createSpan({ text: type });
+}
 
 class CalloutSuggestModal extends SuggestModal<string> {
 	constructor(
@@ -68,14 +82,71 @@ class CalloutSuggestModal extends SuggestModal<string> {
 	}
 
 	renderSuggestion(type: string, el: HTMLElement): void {
-		el.addClass("insert-callout-suggestion");
-		const iconEl = el.createSpan({ cls: "insert-callout-suggestion-icon" });
-		setIcon(iconEl, CALLOUT_ICONS[type] ?? "lucide-pencil");
-		el.createSpan({ text: type });
+		renderCalloutSuggestion(type, el);
 	}
 
 	onChooseSuggestion(type: string): void {
 		this.onChoose(type);
+	}
+}
+
+// 引用ブロック内で "[!" と入力したときに Callout 種類を補完する
+class CalloutEditorSuggest extends EditorSuggest<string> {
+	constructor(private plugin: InsertCalloutPlugin) {
+		super(plugin.app);
+	}
+
+	onTrigger(
+		cursor: EditorPosition,
+		editor: Editor,
+		_file: TFile | null
+	): EditorSuggestTriggerInfo | null {
+		const beforeCursor = editor.getLine(cursor.line).slice(0, cursor.ch);
+		// 引用マーカー(ネスト可)の直後の "[!" + 入力途中の種類名にのみ反応する
+		const match = beforeCursor.match(/^(\s*(?:>\s*)+)\[!([^\][\s]*)$/);
+		if (!match) {
+			return null;
+		}
+		return {
+			start: { line: cursor.line, ch: match[1].length },
+			end: cursor,
+			query: match[2],
+		};
+	}
+
+	getSuggestions(context: EditorSuggestContext): string[] {
+		const q = context.query.toLowerCase();
+		return this.plugin
+			.getOrderedTypes()
+			.filter((t) => t.toLowerCase().includes(q));
+	}
+
+	renderSuggestion(type: string, el: HTMLElement): void {
+		renderCalloutSuggestion(type, el);
+	}
+
+	selectSuggestion(type: string): void {
+		const context = this.context;
+		if (!context) {
+			return;
+		}
+		const { editor, start } = context;
+		let end = context.end;
+		// Obsidian の括弧自動ペアで入力済みの "]" が直後にある場合は
+		// それも置換対象に含め、"]" が重複しないようにする
+		if (
+			this.plugin.settings.skipClosingBracket &&
+			editor.getLine(end.line).charAt(end.ch) === "]"
+		) {
+			end = { line: end.line, ch: end.ch + 1 };
+		}
+		const heading = `[!${type}] `;
+		editor.replaceRange(heading, start, end);
+		editor.setCursor({
+			line: start.line,
+			ch: start.ch + heading.length,
+		});
+		this.plugin.markUsed(type);
 	}
 }
 
@@ -91,21 +162,30 @@ export default class InsertCalloutPlugin extends Plugin {
 			editorCallback: (editor) => this.chooseAndInsert(editor),
 		});
 
+		this.registerEditorSuggest(new CalloutEditorSuggest(this));
+
 		this.addSettingTab(new InsertCalloutSettingTab(this.app, this));
 	}
 
-	chooseAndInsert(editor: Editor) {
-		// 最後に使った種類をリスト先頭に置き、初期ハイライトさせる
-		const types = [...this.settings.calloutTypes];
-		const lastIndex = types.indexOf(this.settings.lastUsed);
-		if (lastIndex > 0) {
-			types.splice(lastIndex, 1);
-			types.unshift(this.settings.lastUsed);
-		}
+	// 最近使った種類を先頭に、残りは設定順で返す
+	getOrderedTypes(): string[] {
+		const types = this.settings.calloutTypes;
+		const recent = this.settings.recentTypes.filter((t) =>
+			types.includes(t)
+		);
+		return [...recent, ...types.filter((t) => !recent.includes(t))];
+	}
 
-		new CalloutSuggestModal(this.app, types, (type) => {
-			this.settings.lastUsed = type;
-			void this.saveSettings();
+	markUsed(type: string) {
+		const recent = this.settings.recentTypes.filter((t) => t !== type);
+		recent.unshift(type);
+		this.settings.recentTypes = recent.slice(0, 20);
+		void this.saveSettings();
+	}
+
+	chooseAndInsert(editor: Editor) {
+		new CalloutSuggestModal(this.app, this.getOrderedTypes(), (type) => {
+			this.markUsed(type);
 			this.insertCallout(editor, type);
 		}).open();
 	}
@@ -150,12 +230,25 @@ export default class InsertCalloutPlugin extends Plugin {
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		const data = (await this.loadData()) as
+			| (Partial<InsertCalloutSettings> & { lastUsed?: string })
+			| null;
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, data);
 		if (
 			!Array.isArray(this.settings.calloutTypes) ||
 			this.settings.calloutTypes.length === 0
 		) {
 			this.settings.calloutTypes = [...DEFAULT_CALLOUT_TYPES];
+		}
+		if (!Array.isArray(this.settings.recentTypes)) {
+			this.settings.recentTypes = [];
+		}
+		// 旧バージョンの lastUsed 設定を最近使用リストに引き継ぐ
+		if (
+			this.settings.recentTypes.length === 0 &&
+			typeof data?.lastUsed === "string"
+		) {
+			this.settings.recentTypes = [data.lastUsed];
 		}
 	}
 
@@ -194,6 +287,21 @@ class InsertCalloutSettingTab extends PluginSettingTab {
 						types.length > 0 ? types : [...DEFAULT_CALLOUT_TYPES];
 					await this.plugin.saveSettings();
 				});
+			});
+
+		new Setting(containerEl)
+			.setName('終わりの "]" を挿入しない')
+			.setDesc(
+				"オートコンプリートで挿入するとき、カーソル直後に既にある \"]\" を" +
+					"重複させません。Obsidian が [ の入力時に ] を自動補完する場合はオンのままにしてください。"
+			)
+			.addToggle((toggle) => {
+				toggle
+					.setValue(this.plugin.settings.skipClosingBracket)
+					.onChange(async (value) => {
+						this.plugin.settings.skipClosingBracket = value;
+						await this.plugin.saveSettings();
+					});
 			});
 
 		new Setting(containerEl)
