@@ -1,6 +1,6 @@
 # Insert Callout
 
-An Obsidian plugin that quickly inserts [callouts](https://help.obsidian.md/callouts) via a type-selection dialog.
+An Obsidian plugin that quickly inserts [callouts](https://help.obsidian.md/callouts) in two ways: a type-selection dialog command, and autocomplete that pops up when you type `[!` in a quote block. In both, the suggestions are ordered by most recently used.
 
 [日本語の説明はこちら](#insert-callout-日本語)
 
@@ -57,7 +57,9 @@ npm run dev     # watch build
 
 # Insert Callout (日本語)
 
-Obsidian に Callout を素早く挿入するプラグイン。
+Obsidian に Callout を素早く挿入するプラグイン。種類選択ダイアログを開くコマンドと、
+引用ブロック内で `[!` と入力すると表示されるオートコンプリートの2つの方法があり、
+どちらも候補は最近使った順に並ぶ。
 
 ## 機能
 
