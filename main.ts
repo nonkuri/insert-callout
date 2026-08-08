@@ -5,6 +5,7 @@ import {
 	EditorSuggest,
 	EditorSuggestContext,
 	EditorSuggestTriggerInfo,
+	Notice,
 	Plugin,
 	PluginSettingTab,
 	Setting,
@@ -58,6 +59,21 @@ const DEFAULT_SETTINGS: InsertCalloutSettings = {
 	recentTypes: [],
 	skipClosingBracket: true,
 };
+
+// 引用ブロックの行かどうか(先頭の空白は許容)
+function isQuoteLine(line: string): boolean {
+	return /^\s*>/.test(line);
+}
+
+// 引用マーカーを1段分だけ取り除く(">" と直後の空白1つ)
+function stripOneQuoteLevel(line: string): string {
+	const match = line.match(/^(\s*)>[ \t]?(.*)$/);
+	return match ? match[1] + match[2] : line;
+}
+
+// 引用マーカーを剥がした後の行が Callout 見出しかどうか
+// 例: "[!note]" / "[!note]+ タイトル"
+const CALLOUT_HEADING = /^\[!([^\]]+)\]([+-]?)[ \t]*(.*)$/;
 
 function renderCalloutSuggestion(type: string, el: HTMLElement): void {
 	el.addClass("insert-callout-suggestion");
@@ -162,6 +178,12 @@ export default class InsertCalloutPlugin extends Plugin {
 			editorCallback: (editor) => this.chooseAndInsert(editor),
 		});
 
+		this.addCommand({
+			id: "remove-callout",
+			name: "Remove callout",
+			editorCallback: (editor) => this.removeCallout(editor),
+		});
+
 		this.registerEditorSuggest(new CalloutEditorSuggest(this));
 
 		this.addSettingTab(new InsertCalloutSettingTab(this.app, this));
@@ -225,6 +247,96 @@ export default class InsertCalloutPlugin extends Plugin {
 		editor.setCursor({
 			line: cursorLine,
 			ch: editor.getLine(cursorLine).length,
+		});
+		editor.focus();
+	}
+
+	// Callout 見出しを削除し、引用マーカーを1段分だけ剥がす
+	// (1段だけの引用なら引用状態そのものが解除される)
+	removeCallout(editor: Editor) {
+		const cursor = editor.getCursor();
+		const from = editor.getCursor("from");
+		const to = editor.getCursor("to");
+		let startLine = from.line;
+		let endLine = to.line;
+		// 行頭までの選択(行全体をドラッグ選択した場合など)は
+		// その行を含めない
+		if (endLine > startLine && to.ch === 0) {
+			endLine--;
+		}
+
+		// 選択範囲の端が引用行でない場合は、内側の引用行まで詰める
+		while (startLine <= endLine && !isQuoteLine(editor.getLine(startLine))) {
+			startLine++;
+		}
+		while (endLine >= startLine && !isQuoteLine(editor.getLine(endLine))) {
+			endLine--;
+		}
+		if (startLine > endLine) {
+			new Notice("引用/Callout が見つかりません");
+			return;
+		}
+
+		// 引用ブロック全体(空行または非引用行までが1ブロック)に広げる
+		while (startLine > 0 && isQuoteLine(editor.getLine(startLine - 1))) {
+			startLine--;
+		}
+		while (
+			endLine < editor.lastLine() &&
+			isQuoteLine(editor.getLine(endLine + 1))
+		) {
+			endLine++;
+		}
+
+		const lines: string[] = [];
+		for (let i = startLine; i <= endLine; i++) {
+			lines.push(stripOneQuoteLevel(editor.getLine(i)));
+		}
+
+		// 先頭が Callout 見出しなら削除する
+		// ただしタイトル付き("[!note] タイトル")ならタイトルは本文として残す
+		let removedHeadingLine = false;
+		const heading = lines[0].match(CALLOUT_HEADING);
+		if (heading) {
+			const title = heading[3].trim();
+			if (title) {
+				lines[0] = title;
+			} else {
+				lines.shift();
+				removedHeadingLine = true;
+			}
+		}
+
+		// 置換前に、カーソル行から取り除かれる引用マーカーの長さを控えておく
+		const cursorLineText = editor.getLine(cursor.line);
+		const removedPrefix =
+			cursor.line >= startLine && cursor.line <= endLine
+				? cursorLineText.length -
+					stripOneQuoteLevel(cursorLineText).length
+				: 0;
+
+		editor.replaceRange(
+			lines.join("\n"),
+			{ line: startLine, ch: 0 },
+			{ line: endLine, ch: editor.getLine(endLine).length }
+		);
+
+		// カーソルをおおよそ元の位置に戻す
+		let targetLine = cursor.line - (removedHeadingLine ? 1 : 0);
+		if (targetLine < startLine) {
+			targetLine = startLine;
+		}
+		const lastRemainingLine = startLine + Math.max(lines.length - 1, 0);
+		if (targetLine > lastRemainingLine) {
+			targetLine = lastRemainingLine;
+		}
+		const targetText = editor.getLine(targetLine);
+		editor.setCursor({
+			line: targetLine,
+			ch: Math.max(
+				0,
+				Math.min(cursor.ch - removedPrefix, targetText.length)
+			),
 		});
 		editor.focus();
 	}

@@ -1,6 +1,6 @@
 {
 	"name": "insert-callout",
-	"version": "1.1.0",
+	"version": "1.2.0",
 	"description": "Obsidian plugin to insert callouts via a type-selection dialog.",
 	"main": "main.js",
 	"scripts": {
