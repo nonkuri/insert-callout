@@ -54,7 +54,7 @@ Run the **Remove** command with the cursor anywhere inside a callout:
 
 ## Installation (manual)
 
-Copy the following files into `.obsidian/plugins/insert-callout/` in your vault,
+Requires Obsidian 1.13.0 or later. Copy the following files into `.obsidian/plugins/insert-callout/` in your vault,
 then enable the plugin under Settings → Community plugins:
 
 - `main.js`
@@ -130,7 +130,7 @@ Callout 内にカーソルを置いてコマンド **Remove** を実行する。
 
 ## インストール(手動)
 
-Vault の `.obsidian/plugins/insert-callout/` に以下の3ファイルを置き、
+Obsidian 1.13.0 以降が必要。Vault の `.obsidian/plugins/insert-callout/` に以下の3ファイルを置き、
 Obsidian の設定 → コミュニティプラグイン で有効化する。
 
 - `main.js`

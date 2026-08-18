@@ -8,7 +8,6 @@ import {
 	Notice,
 	Plugin,
 	PluginSettingTab,
-	Setting,
 	SettingDefinitionItem,
 	SuggestModal,
 	TFile,
@@ -370,27 +369,6 @@ export default class InsertCalloutPlugin extends Plugin {
 	}
 }
 
-// 設定 UI の文言(宣言的 API と display() フォールバックで共用)
-const SETTING_LABELS = {
-	types: {
-		name: "Callout types",
-		desc:
-			"Types shown in the dialog, one per line, in the order you want " +
-			"them. Custom callout names are allowed.",
-	},
-	skipClosingBracket: {
-		name: "Don't insert the closing bracket",
-		desc:
-			'When autocompleting, don\'t duplicate a "]" that is already ' +
-			"right after the cursor. Keep this on if Obsidian auto-pairs " +
-			'"[" with "]".',
-	},
-	reset: {
-		name: "Reset to defaults",
-		desc: "Restore the 13 built-in Obsidian callout types and their order.",
-	},
-};
-
 // 種類リストは string[] で保存しているが UI では複数行テキストとして扱うため、
 // 宣言的設定 API には専用のキーを割り当てる
 const CALLOUT_TYPES_KEY = "calloutTypesText";
@@ -415,7 +393,10 @@ class InsertCalloutSettingTab extends PluginSettingTab {
 	getSettingDefinitions(): SettingDefinitionItem[] {
 		return [
 			{
-				...SETTING_LABELS.types,
+				name: "Callout types",
+				desc:
+					"Types shown in the dialog, one per line, in the order " +
+					"you want them. Custom callout names are allowed.",
 				control: {
 					type: "textarea",
 					key: CALLOUT_TYPES_KEY,
@@ -423,15 +404,25 @@ class InsertCalloutSettingTab extends PluginSettingTab {
 				},
 			},
 			{
-				...SETTING_LABELS.skipClosingBracket,
+				name: "Don't insert the closing bracket",
+				desc:
+					'When autocompleting, don\'t duplicate a "]" that is ' +
+					"already right after the cursor. Keep this on if " +
+					'Obsidian auto-pairs "[" with "]".',
 				control: { type: "toggle", key: "skipClosingBracket" },
 			},
 			{
-				...SETTING_LABELS.reset,
+				name: "Reset to defaults",
+				desc:
+					"Restore the 13 built-in Obsidian callout types and " +
+					"their order.",
 				render: (setting) => {
 					setting.addButton((button) => {
 						button.setButtonText("Reset").onClick(async () => {
-							await this.resetTypes();
+							this.plugin.settings.calloutTypes = [
+								...DEFAULT_CALLOUT_TYPES,
+							];
+							await this.plugin.saveSettings();
 							this.update();
 						});
 					});
@@ -461,52 +452,5 @@ class InsertCalloutSettingTab extends PluginSettingTab {
 			return;
 		}
 		await this.plugin.saveSettings();
-	}
-
-	async resetTypes(): Promise<void> {
-		this.plugin.settings.calloutTypes = [...DEFAULT_CALLOUT_TYPES];
-		await this.plugin.saveSettings();
-	}
-
-	// Obsidian 1.13.0 未満では getSettingDefinitions() が呼ばれないため、
-	// 命令的な描画をフォールバックとして残す
-	display(): void {
-		const { containerEl } = this;
-		containerEl.empty();
-
-		new Setting(containerEl)
-			.setName(SETTING_LABELS.types.name)
-			.setDesc(SETTING_LABELS.types.desc)
-			.addTextArea((text) => {
-				text.inputEl.rows = 13;
-				text.setValue(this.plugin.settings.calloutTypes.join("\n"));
-				text.onChange(async (value) => {
-					this.plugin.settings.calloutTypes =
-						parseCalloutTypes(value);
-					await this.plugin.saveSettings();
-				});
-			});
-
-		new Setting(containerEl)
-			.setName(SETTING_LABELS.skipClosingBracket.name)
-			.setDesc(SETTING_LABELS.skipClosingBracket.desc)
-			.addToggle((toggle) => {
-				toggle
-					.setValue(this.plugin.settings.skipClosingBracket)
-					.onChange(async (value) => {
-						this.plugin.settings.skipClosingBracket = value;
-						await this.plugin.saveSettings();
-					});
-			});
-
-		new Setting(containerEl)
-			.setName(SETTING_LABELS.reset.name)
-			.setDesc(SETTING_LABELS.reset.desc)
-			.addButton((button) => {
-				button.setButtonText("Reset").onClick(async () => {
-					await this.resetTypes();
-					this.display();
-				});
-			});
 	}
 }
