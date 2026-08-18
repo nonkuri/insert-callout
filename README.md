@@ -6,7 +6,8 @@ An Obsidian plugin that quickly inserts [callouts](https://help.obsidian.md/call
 
 ## Features
 
-- Run the **Insert callout** command to open a suggestion dialog for the callout type
+- Run the **Insert** command (shown as *Insert Callout: Insert*) to open a suggestion dialog
+  for the callout type
   - Filter by typing (e.g. `wa` → warning), pick with ↑/↓ + Enter or a mouse click
   - **Recently used types appear at the top** of the list, so pressing Enter reuses the last one
 - **Autocomplete in quote blocks**: typing `[!` right after `>` pops up the same suggestion list
@@ -15,7 +16,8 @@ An Obsidian plugin that quickly inserts [callouts](https://help.obsidian.md/call
   - Candidates are ordered by most recently used
 - **No selection**: the cursor line is turned into a callout and the cursor is placed in the body
 - **With selection**: the selected lines become the body of the callout
-- Run the **Remove callout** command to undo it: the heading line is removed and the quote
+- Run the **Remove** command (shown as *Insert Callout: Remove*) to undo it: the heading line
+  is removed and the quote
   markers are stripped as well (see [Removing a callout](#removing-a-callout))
 
 The inserted callout is the simple form (type only, no fold marker):
@@ -27,7 +29,7 @@ The inserted callout is the simple form (type only, no fold marker):
 
 ## Removing a callout
 
-Run the **Remove callout** command with the cursor anywhere inside a callout:
+Run the **Remove** command with the cursor anywhere inside a callout:
 
 - The `> [!type]` heading line is deleted, and **one level of quote markers is stripped**
   from the rest of the block — so a plain callout becomes plain text, quoting included
@@ -81,7 +83,7 @@ Obsidian に Callout を素早く挿入するプラグイン。種類選択ダ�
 
 ## 機能
 
-- コマンド **Insert callout** を実行すると、Callout の種類を選ぶダイアログが開く
+- コマンド **Insert**(表示は *Insert Callout: Insert*)を実行すると、Callout の種類を選ぶダイアログが開く
   - 文字入力で絞り込み(例: `wa` → warning)、↑↓ + Enter またはクリックで決定
   - **最近使った種類がリスト先頭**に表示され、Enter だけで再利用できる
 - **引用ブロック内のオートコンプリート**: `>` の直後に `[!` と入力すると候補リストが表示される
@@ -90,7 +92,7 @@ Obsidian に Callout を素早く挿入するプラグイン。種類選択ダ�
   - 候補は最近使った順に並ぶ
 - **選択範囲がない場合**: カーソル行を Callout に変換し、カーソルを本文位置にセット
 - **選択範囲がある場合**: 選択した行(複数行可)を Callout の本文に変換
-- コマンド **Remove callout** で解除できる。見出し行を削除し、引用マーカーも剥がす
+- コマンド **Remove**(表示は *Insert Callout: Remove*)で解除できる。見出し行を削除し、引用マーカーも剥がす
   (詳細は [Callout の解除](#callout-の解除))
 
 挿入されるのは種類のみのシンプルな形式(折りたたみ記号なし):
@@ -102,7 +104,7 @@ Obsidian に Callout を素早く挿入するプラグイン。種類選択ダ�
 
 ## Callout の解除
 
-Callout 内にカーソルを置いてコマンド **Remove callout** を実行する。
+Callout 内にカーソルを置いてコマンド **Remove** を実行する。
 
 - `> [!type]` の見出し行を削除し、残りの行から**引用マーカーを1段分だけ剥がす**。
   通常の Callout なら引用状態ごと解除され、ただのテキストに戻る

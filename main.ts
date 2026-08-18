@@ -9,6 +9,7 @@ import {
 	Plugin,
 	PluginSettingTab,
 	Setting,
+	SettingDefinitionItem,
 	SuggestModal,
 	TFile,
 	setIcon,
@@ -173,14 +174,14 @@ export default class InsertCalloutPlugin extends Plugin {
 		await this.loadSettings();
 
 		this.addCommand({
-			id: "insert-callout",
-			name: "Insert callout",
+			id: "insert",
+			name: "Insert",
 			editorCallback: (editor) => this.chooseAndInsert(editor),
 		});
 
 		this.addCommand({
-			id: "remove-callout",
-			name: "Remove callout",
+			id: "remove",
+			name: "Remove",
 			editorCallback: (editor) => this.removeCallout(editor),
 		});
 
@@ -369,6 +370,40 @@ export default class InsertCalloutPlugin extends Plugin {
 	}
 }
 
+// 設定 UI の文言(宣言的 API と display() フォールバックで共用)
+const SETTING_LABELS = {
+	types: {
+		name: "Callout types",
+		desc:
+			"Types shown in the dialog, one per line, in the order you want " +
+			"them. Custom callout names are allowed.",
+	},
+	skipClosingBracket: {
+		name: "Don't insert the closing bracket",
+		desc:
+			'When autocompleting, don\'t duplicate a "]" that is already ' +
+			"right after the cursor. Keep this on if Obsidian auto-pairs " +
+			'"[" with "]".',
+	},
+	reset: {
+		name: "Reset to defaults",
+		desc: "Restore the 13 built-in Obsidian callout types and their order.",
+	},
+};
+
+// 種類リストは string[] で保存しているが UI では複数行テキストとして扱うため、
+// 宣言的設定 API には専用のキーを割り当てる
+const CALLOUT_TYPES_KEY = "calloutTypesText";
+
+// テキストエリアの内容を種類リストに変換する(空なら組み込みの13種類に戻す)
+function parseCalloutTypes(value: string): string[] {
+	const types = value
+		.split("\n")
+		.map((s) => s.trim().toLowerCase())
+		.filter((s) => s.length > 0);
+	return types.length > 0 ? types : [...DEFAULT_CALLOUT_TYPES];
+}
+
 class InsertCalloutSettingTab extends PluginSettingTab {
 	plugin: InsertCalloutPlugin;
 
@@ -377,37 +412,84 @@ class InsertCalloutSettingTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
+	getSettingDefinitions(): SettingDefinitionItem[] {
+		return [
+			{
+				...SETTING_LABELS.types,
+				control: {
+					type: "textarea",
+					key: CALLOUT_TYPES_KEY,
+					rows: 13,
+				},
+			},
+			{
+				...SETTING_LABELS.skipClosingBracket,
+				control: { type: "toggle", key: "skipClosingBracket" },
+			},
+			{
+				...SETTING_LABELS.reset,
+				render: (setting) => {
+					setting.addButton((button) => {
+						button.setButtonText("Reset").onClick(async () => {
+							await this.resetTypes();
+							this.update();
+						});
+					});
+				},
+			},
+		];
+	}
+
+	getControlValue(key: string): unknown {
+		if (key === CALLOUT_TYPES_KEY) {
+			return this.plugin.settings.calloutTypes.join("\n");
+		}
+		if (key === "skipClosingBracket") {
+			return this.plugin.settings.skipClosingBracket;
+		}
+		return undefined;
+	}
+
+	async setControlValue(key: string, value: unknown): Promise<void> {
+		if (key === CALLOUT_TYPES_KEY) {
+			this.plugin.settings.calloutTypes = parseCalloutTypes(
+				String(value)
+			);
+		} else if (key === "skipClosingBracket") {
+			this.plugin.settings.skipClosingBracket = Boolean(value);
+		} else {
+			return;
+		}
+		await this.plugin.saveSettings();
+	}
+
+	async resetTypes(): Promise<void> {
+		this.plugin.settings.calloutTypes = [...DEFAULT_CALLOUT_TYPES];
+		await this.plugin.saveSettings();
+	}
+
+	// Obsidian 1.13.0 未満では getSettingDefinitions() が呼ばれないため、
+	// 命令的な描画をフォールバックとして残す
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName("Callout types")
-			.setDesc(
-				"Types shown in the dialog, one per line, in the order you want " +
-					"them. Custom callout names are allowed."
-			)
+			.setName(SETTING_LABELS.types.name)
+			.setDesc(SETTING_LABELS.types.desc)
 			.addTextArea((text) => {
 				text.inputEl.rows = 13;
 				text.setValue(this.plugin.settings.calloutTypes.join("\n"));
 				text.onChange(async (value) => {
-					const types = value
-						.split("\n")
-						.map((s) => s.trim().toLowerCase())
-						.filter((s) => s.length > 0);
 					this.plugin.settings.calloutTypes =
-						types.length > 0 ? types : [...DEFAULT_CALLOUT_TYPES];
+						parseCalloutTypes(value);
 					await this.plugin.saveSettings();
 				});
 			});
 
 		new Setting(containerEl)
-			.setName("Don't insert the closing bracket")
-			.setDesc(
-				"When autocompleting, don't duplicate a \"]\" that is already " +
-					"right after the cursor. Keep this on if Obsidian auto-pairs " +
-					"\"[\" with \"]\"."
-			)
+			.setName(SETTING_LABELS.skipClosingBracket.name)
+			.setDesc(SETTING_LABELS.skipClosingBracket.desc)
 			.addToggle((toggle) => {
 				toggle
 					.setValue(this.plugin.settings.skipClosingBracket)
@@ -418,12 +500,11 @@ class InsertCalloutSettingTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
-			.setName("Reset to defaults")
-			.setDesc("Restore the 13 built-in Obsidian callout types and their order.")
+			.setName(SETTING_LABELS.reset.name)
+			.setDesc(SETTING_LABELS.reset.desc)
 			.addButton((button) => {
 				button.setButtonText("Reset").onClick(async () => {
-					this.plugin.settings.calloutTypes = [...DEFAULT_CALLOUT_TYPES];
-					await this.plugin.saveSettings();
+					await this.resetTypes();
 					this.display();
 				});
 			});
