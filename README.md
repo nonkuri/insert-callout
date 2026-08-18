@@ -45,8 +45,8 @@ Run the **Remove callout** command with the cursor anywhere inside a callout:
 
 - **Callout types**: edit the types shown in the dialog and their order, one type per line.
   Custom callout names are also allowed.
-- **Don't insert the closing `]`** (default: on): when autocompleting, an existing `]` right
-  after the cursor is not duplicated. Keep this on if Obsidian auto-pairs `[` with `]`.
+- **Don't insert the closing bracket** (default: on): when autocompleting, an existing `]`
+  right after the cursor is not duplicated. Keep this on if Obsidian auto-pairs `[` with `]`.
 - **Reset to defaults**: restores the 13 built-in Obsidian types
   (note, abstract, info, todo, tip, success, question, warning, failure, danger, bug, example, quote).
 
@@ -118,12 +118,12 @@ Callout 内にカーソルを置いてコマンド **Remove callout** を実行�
 
 ## 設定
 
-- **Callout の種類**: ダイアログに表示する種類と順序を、1行1種類のテキストで編集。
+- **Callout types**: ダイアログに表示する種類と順序を、1行1種類のテキストで編集。
   カスタム Callout 名も追加可能。
-- **終わりの "]" を挿入しない**(デフォルト: オン): オートコンプリートで挿入するとき、
+- **Don't insert the closing bracket**(デフォルト: オン): オートコンプリートで挿入するとき、
   カーソル直後に既にある `]` を重複させない。Obsidian が `[` の入力時に `]` を
   自動補完する環境ではオンのままにする。
-- **デフォルトに戻す**: Obsidian 組み込みの13種類
+- **Reset to defaults**: Obsidian 組み込みの13種類
   (note, abstract, info, todo, tip, success, question, warning, failure, danger, bug, example, quote)にリセット。
 
 ## インストール(手動)

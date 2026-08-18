@@ -89,7 +89,7 @@ class CalloutSuggestModal extends SuggestModal<string> {
 		private onChoose: (type: string) => void
 	) {
 		super(app);
-		this.setPlaceholder("Callout の種類を選択…");
+		this.setPlaceholder("Select a callout type…");
 	}
 
 	getSuggestions(query: string): string[] {
@@ -273,7 +273,7 @@ export default class InsertCalloutPlugin extends Plugin {
 			endLine--;
 		}
 		if (startLine > endLine) {
-			new Notice("引用/Callout が見つかりません");
+			new Notice("No quote or callout found");
 			return;
 		}
 
@@ -382,10 +382,10 @@ class InsertCalloutSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName("Callout の種類")
+			.setName("Callout types")
 			.setDesc(
-				"ダイアログに表示する Callout の種類を1行に1つずつ、表示したい順に記述します。" +
-					"カスタム Callout 名も追加できます。"
+				"Types shown in the dialog, one per line, in the order you want " +
+					"them. Custom callout names are allowed."
 			)
 			.addTextArea((text) => {
 				text.inputEl.rows = 13;
@@ -402,10 +402,11 @@ class InsertCalloutSettingTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
-			.setName('終わりの "]" を挿入しない')
+			.setName("Don't insert the closing bracket")
 			.setDesc(
-				"オートコンプリートで挿入するとき、カーソル直後に既にある \"]\" を" +
-					"重複させません。Obsidian が [ の入力時に ] を自動補完する場合はオンのままにしてください。"
+				"When autocompleting, don't duplicate a \"]\" that is already " +
+					"right after the cursor. Keep this on if Obsidian auto-pairs " +
+					"\"[\" with \"]\"."
 			)
 			.addToggle((toggle) => {
 				toggle
@@ -417,10 +418,10 @@ class InsertCalloutSettingTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
-			.setName("デフォルトに戻す")
-			.setDesc("Callout の種類と順序を Obsidian 組み込みの13種類に戻します。")
+			.setName("Reset to defaults")
+			.setDesc("Restore the 13 built-in Obsidian callout types and their order.")
 			.addButton((button) => {
-				button.setButtonText("リセット").onClick(async () => {
+				button.setButtonText("Reset").onClick(async () => {
 					this.plugin.settings.calloutTypes = [...DEFAULT_CALLOUT_TYPES];
 					await this.plugin.saveSettings();
 					this.display();
