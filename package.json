@@ -1,6 +1,6 @@
 {
 	"name": "insert-callout",
-	"version": "1.4.0",
+	"version": "1.4.1",
 	"description": "Insert, autocomplete, remove, and navigate callouts from a sidebar list in Obsidian.",
 	"main": "main.js",
 	"scripts": {

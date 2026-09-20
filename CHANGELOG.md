@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.4.1
+
+- Change the manifest description to start with "Create callouts" instead of "Insert callouts", avoiding the plugin-name prefix warning.
+- No changes to plugin functionality. Requires Obsidian **1.13.0** or later.
+
+### 日本語
+
+- manifest の説明文を「Create callouts」で始める形に修正し、プラグイン名で始まるという警告に対応。
+- 機能の変更はなし。必要な Obsidian のバージョンは **1.13.0** 以降。
+
 ## 1.4.0
 
 - Add a **Callouts** sidebar for the current note, opened with **Insert Callout: Open callout list** or its ribbon icon.
