@@ -1,11 +1,12 @@
 {
 	"name": "insert-callout",
-	"version": "1.3.1",
-	"description": "Obsidian plugin to insert callouts via a type-selection dialog.",
+	"version": "1.4.0",
+	"description": "Insert, autocomplete, remove, and navigate callouts from a sidebar list in Obsidian.",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
-		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production"
+		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+		"test": "node --test tests/*.test.mjs"
 	},
 	"keywords": ["obsidian", "plugin", "callout"],
 	"author": "nonkuri",

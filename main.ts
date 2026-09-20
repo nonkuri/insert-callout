@@ -13,6 +13,8 @@ import {
 	TFile,
 	setIcon,
 } from "obsidian";
+import { parseCallouts } from "./callout-index";
+import { CALLOUT_VIEW_TYPE, CalloutListView } from "./callout-view";
 
 interface InsertCalloutSettings {
 	calloutTypes: string[];
@@ -172,6 +174,29 @@ export default class InsertCalloutPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 
+		this.registerView(CALLOUT_VIEW_TYPE, (leaf) => new CalloutListView(leaf, CALLOUT_ICONS));
+		this.addCommand({
+			id: "open-callout-list",
+			name: "Open callout list",
+			callback: () => this.openCalloutList(),
+		});
+		this.addRibbonIcon("list-collapse", "Open callout list", () => { void this.openCalloutList(); });
+		this.registerMarkdownPostProcessor((el, ctx) => {
+			const section = ctx.getSectionInfo(el);
+			if (!section) return;
+			const callouts = Array.from(el.querySelectorAll<HTMLElement>(".callout"));
+			if (el.matches(".callout")) callouts.unshift(el);
+			const ownCallouts = callouts.filter((node) => !node.closest(".markdown-embed"));
+			if (!ownCallouts.length) return;
+			const entries = parseCallouts(section.text).filter((entry) =>
+				entry.line >= section.lineStart && entry.line <= section.lineEnd);
+			// Never attach a source position when the rendered structure differs.
+			if (entries.length !== ownCallouts.length) return;
+			ownCallouts.forEach((node, index) => {
+				node.dataset.insertCalloutLine = String(entries[index].line);
+			});
+		});
+
 		this.addCommand({
 			id: "insert",
 			name: "Insert",
@@ -187,6 +212,16 @@ export default class InsertCalloutPlugin extends Plugin {
 		this.registerEditorSuggest(new CalloutEditorSuggest(this));
 
 		this.addSettingTab(new InsertCalloutSettingTab(this.app, this));
+	}
+
+	async openCalloutList(): Promise<void> {
+		const workspace = this.app.workspace;
+		const existing = workspace.getLeavesOfType(CALLOUT_VIEW_TYPE)[0];
+		const leaf = existing ?? workspace.getRightLeaf(false);
+		if (!leaf) return;
+		if (!existing) await leaf.setViewState({ type: CALLOUT_VIEW_TYPE, active: true });
+		await leaf.loadIfDeferred();
+		await workspace.revealLeaf(leaf);
 	}
 
 	// 最近使った種類を先頭に、残りは設定順で返す

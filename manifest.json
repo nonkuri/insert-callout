@@ -1,9 +1,9 @@
 {
 	"id": "insert-callout",
 	"name": "Insert Callout",
-	"version": "1.3.1",
+	"version": "1.4.0",
 	"minAppVersion": "1.13.0",
-	"description": "Insert a callout via a type-selection dialog, or with autocomplete by typing [! in a quote block. Turns the cursor line or selection into a callout, and can remove a callout along with its quote markers.",
+	"description": "Insert callouts with a type-selection dialog or autocomplete, remove them along with quote markers, and navigate the current note's callouts from a sidebar list.",
 	"author": "nonkuri",
 	"authorUrl": "https://github.com/nonkuri",
 	"isDesktopOnly": false

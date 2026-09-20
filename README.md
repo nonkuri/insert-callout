@@ -1,6 +1,6 @@
 # Insert Callout
 
-An Obsidian plugin that quickly inserts [callouts](https://help.obsidian.md/callouts) in two ways: a type-selection dialog command, and autocomplete that pops up when you type `[!` in a quote block. In both, the suggestions are ordered by most recently used. A second command removes a callout again, stripping the quote markers with it.
+An Obsidian plugin that quickly inserts [callouts](https://help.obsidian.md/callouts) in two ways: a type-selection dialog command, and autocomplete that pops up when you type `[!` in a quote block. In both, the suggestions are ordered by most recently used. A remove command strips callouts and their quote markers. A sidebar list shows the current note's callouts and lets you jump to them.
 
 [日本語の説明はこちら](#insert-callout-日本語)
 
@@ -19,6 +19,8 @@ An Obsidian plugin that quickly inserts [callouts](https://help.obsidian.md/call
 - Run the **Remove** command (shown as *Insert Callout: Remove*) to undo it: the heading line
   is removed and the quote
   markers are stripped as well (see [Removing a callout](#removing-a-callout))
+- Run **Open callout list** to show the current note's callouts in the right sidebar
+  and click an entry to jump to it (see [Callout list](#callout-list))
 
 The inserted callout is the simple form (type only, no fold marker):
 
@@ -26,6 +28,19 @@ The inserted callout is the simple form (type only, no fold marker):
 > [!note]
 > body text
 ```
+
+## Callout list
+
+Run **Insert Callout: Open callout list** from the command palette, or click the
+**Open callout list** ribbon icon, to open a **Callouts** tab in the right sidebar.
+It lists callouts in the current note in document order, with their type icons and
+titles (or the type name when no title is supplied). Nested quotes are indented.
+Click an entry, or focus it with Tab and press Enter, to jump to its location.
+The list follows note changes and updates shortly after editing. It excludes fenced
+code examples, indented code, frontmatter, and comments. Custom callout types are included.
+The tab can be moved or closed like other Obsidian sidebar tabs; the command reopens it.
+The list covers the current note, not the entire vault. If the note changes before a
+click is processed, the list refreshes and asks you to select the entry again.
 
 ## Removing a callout
 
@@ -61,11 +76,16 @@ then enable the plugin under Settings → Community plugins:
 - `manifest.json`
 - `styles.css`
 
+When updating manually, replace all three files with the assets from the same
+[release](https://github.com/nonkuri/insert-callout/releases), then reload the plugin
+(disable and enable it) or restart Obsidian.
+
 ## Development
 
 ```bash
 npm install
 npm run build   # type check + build main.js
+npm test        # callout list regression tests
 npm run dev     # watch build
 ```
 
@@ -79,7 +99,8 @@ npm run dev     # watch build
 
 Obsidian に Callout を素早く挿入するプラグイン。種類選択ダイアログを開くコマンドと、
 引用ブロック内で `[!` と入力すると表示されるオートコンプリートの2つの方法があり、
-どちらも候補は最近使った順に並ぶ。引用ごと Callout を解除するコマンドもある。
+どちらも候補は最近使った順に並ぶ。引用ごと Callout を解除するコマンドと、
+現在のノートの Callout を一覧表示してその位置へ移動できるサイドバーもある。
 
 ## 機能
 
@@ -94,6 +115,8 @@ Obsidian に Callout を素早く挿入するプラグイン。種類選択ダ�
 - **選択範囲がある場合**: 選択した行(複数行可)を Callout の本文に変換
 - コマンド **Remove**(表示は *Insert Callout: Remove*)で解除できる。見出し行を削除し、引用マーカーも剥がす
   (詳細は [Callout の解除](#callout-の解除))
+- コマンド **Open callout list** で右サイドバーに現在のノートの Callout を一覧表示し、
+  クリックでその位置へ移動できる(詳細は [Callout 一覧](#callout-一覧))
 
 挿入されるのは種類のみのシンプルな形式(折りたたみ記号なし):
 
@@ -101,6 +124,20 @@ Obsidian に Callout を素早く挿入するプラグイン。種類選択ダ�
 > [!note]
 > 本文
 ```
+
+## Callout 一覧
+
+コマンドパレットの **Insert Callout: Open callout list**、またはリボンの
+**Open callout list** アイコンで、右サイドバーに **Callouts** タブを開ける。
+現在のノートの Callout を出現順に、種類のアイコンとタイトルで表示する。
+タイトルがない場合は種類名を表示し、入れ子の引用はインデントする。
+項目をクリックするか、Tab で選択して Enter を押すと、その位置へ移動する。
+ノートを切り替えると一覧も切り替わり、編集内容は少し待つと自動反映される。
+コードブロック・インデントされたコード・フロントマター・コメントは対象外。
+カスタム Callout も表示できる。タブは通常のサイドバーと同様に移動・閉じることができ、
+閉じた後はコマンドから再表示できる。
+一覧の対象は現在のノートで、Vault 全体ではない。編集直後などに古い一覧をクリックした場合は、
+一覧を更新して再選択を案内する。
 
 ## Callout の解除
 
@@ -137,11 +174,15 @@ Obsidian の設定 → コミュニティプラグイン で有効化する。
 - `manifest.json`
 - `styles.css`
 
+手動更新時は、同じ[リリース](https://github.com/nonkuri/insert-callout/releases)の
+3ファイルすべてを置き換え、プラグインをオフ→オンにするか Obsidian を再起動する。
+
 ## 開発
 
 ```bash
 npm install
 npm run build   # 型チェック + main.js 生成
+npm test        # Callout 一覧の回帰テスト
 npm run dev     # watch ビルド
 ```
 
