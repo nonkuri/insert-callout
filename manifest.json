@@ -1,7 +1,7 @@
 {
 	"id": "insert-callout",
 	"name": "Insert Callout",
-	"version": "1.4.1",
+	"version": "1.4.2",
 	"minAppVersion": "1.13.0",
 	"description": "Create callouts with a type-selection dialog or inline autocomplete, remove them along with quote markers, and navigate the current note's callouts from a sidebar list.",
 	"author": "nonkuri",

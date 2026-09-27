@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.4.2
+
+- Left-align callout list icons and titles instead of centering them within each row.
+- Match row spacing, typography, and hover colors to Obsidian navigation styles, while preserving nested indentation and full-row navigation.
+
+Requires Obsidian **1.13.0** or later. For manual updates, replace `main.js`, `manifest.json`, and `styles.css`, then reload the plugin.
+
+### 日本語
+
+- Callout 一覧のアイコンとタイトルが中央寄せになる問題を修正し、左揃えに統一。
+- 行の余白・文字表示・ホバー色を Obsidian のナビゲーション用スタイルに合わせて調整。入れ子のインデントと行全体のクリック操作は維持。
+
+必要な Obsidian のバージョンは **1.13.0** 以降。手動更新では `main.js`、`manifest.json`、`styles.css` を置き換えてプラグインを再読み込みする。
+
 ## 1.4.1
 
 - Change the manifest description to start with "Create callouts" instead of "Insert callouts", avoiding the plugin-name prefix warning.
